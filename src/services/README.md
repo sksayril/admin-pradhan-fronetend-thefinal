@@ -1,6 +1,6 @@
 # API Services Documentation
 
-This folder contains all the API service implementations for the admin frontend application. The services are designed to handle communication with the backend API at `http://localhost:3100/api`.
+This folder contains all the API service implementations for the admin frontend application. The services are designed to handle communication with the backend API at `https://api.padyai.co.in/api`.
 
 ## 📁 Structure
 
@@ -46,7 +46,7 @@ The API configuration is centralized in `config.ts`:
 
 ```typescript
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3100/api',
+  BASE_URL: 'https://api.padyai.co.in/api',
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -58,7 +58,7 @@ export const API_CONFIG = {
 You can override the base URL using environment variables:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3100/api
+VITE_API_BASE_URL=https://api.padyai.co.in/api
 ```
 
 ## 🔐 Authentication
