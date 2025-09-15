@@ -1,0 +1,453 @@
+import React, { useState, useEffect } from 'react';
+import { GraduationCap, Plus, Search, Filter, Download, AlertCircle, RefreshCw, Edit, Trash2, Eye, BookOpen } from 'lucide-react';
+import { userManagementService, StudentFilters, EnhancedStudent } from '../../services';
+import StudentDetailModal from '../../components/StudentDetailModal';
+import StudentEnrollmentsModal from '../../components/StudentEnrollmentsModal';
+
+const Students: React.FC = () => {
+  // State for students data
+  const [students, setStudents] = useState<EnhancedStudent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for filters and search
+  const [filters] = useState<StudentFilters>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedKycStatus, setSelectedKycStatus] = useState('all');
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+
+  // State for detail modal
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State for enrollment modal
+  const [selectedStudent, setSelectedStudent] = useState<EnhancedStudent | null>(null);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
+
+  // Load students data
+  const loadStudents = async (page: number = 1) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const currentFilters: StudentFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+        isActive: selectedStatus === 'all' ? undefined : selectedStatus === 'active',
+        department: selectedDepartment === 'all' ? undefined : selectedDepartment,
+        kycStatus: selectedKycStatus === 'all' ? undefined : selectedKycStatus as any,
+      };
+
+      // Remove undefined values
+      Object.keys(currentFilters).forEach(key => {
+        if (currentFilters[key as keyof StudentFilters] === undefined) {
+          delete currentFilters[key as keyof StudentFilters];
+        }
+      });
+
+      const response = await userManagementService.getAllStudents(
+        page,
+        10,
+        currentFilters,
+        'firstName',
+        'asc'
+      );
+
+      setStudents(response.students);
+      setTotalPages(response.pagination.totalPages);
+      setTotalStudents(response.pagination.totalItems);
+      setHasNextPage(response.pagination.hasNextPage);
+      setHasPrevPage(response.pagination.hasPrevPage);
+      setCurrentPage(response.pagination.currentPage);
+    } catch (err) {
+      console.error('Error loading students:', err);
+      setError('Failed to load students. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load students on component mount and when filters change
+  useEffect(() => {
+    loadStudents(1);
+  }, [searchTerm, selectedStatus, selectedDepartment, selectedKycStatus]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadStudents(page);
+  };
+
+  // Handle export
+  const handleExport = async () => {
+    try {
+      const currentFilters: StudentFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+        isActive: selectedStatus === 'all' ? undefined : selectedStatus === 'active',
+        department: selectedDepartment === 'all' ? undefined : selectedDepartment,
+        kycStatus: selectedKycStatus === 'all' ? undefined : selectedKycStatus as any,
+      };
+
+      await userManagementService.exportUsers('students', currentFilters, 'excel');
+    } catch (err) {
+      console.error('Error exporting students:', err);
+      setError('Failed to export students. Please try again.');
+    }
+  };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    loadStudents(currentPage);
+  };
+
+  // Handle view student details
+  const handleViewStudent = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setIsDetailModalOpen(true);
+  };
+
+  // Handle close detail modal
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedStudentId(null);
+  };
+
+  // Handle view student enrollments
+  const handleViewEnrollments = (student: EnhancedStudent) => {
+    setSelectedStudent(student);
+    setIsEnrollmentModalOpen(true);
+  };
+
+  // Handle close enrollment modal
+  const handleCloseEnrollmentModal = () => {
+    setIsEnrollmentModalOpen(false);
+    setSelectedStudent(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <GraduationCap className="w-8 h-8 text-sky-600" />
+          <h1 className="text-3xl font-bold text-gray-800">Students</h1>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          <button
+            onClick={handleExport}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>Export</span>
+          </button>
+          <button className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <Plus className="w-5 h-5" />
+            <span>Add Student</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto text-red-500 hover:text-red-700"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Student Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Students</p>
+              <p className="text-2xl font-bold text-gray-800">{totalStudents}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Students</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {students.filter(s => s.isActive).length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <span className="text-green-600 font-bold text-lg">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">KYC Pending</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {students.filter(s => s.kycStatus === 'pending').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <span className="text-yellow-600 font-bold text-lg">⏳</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Verified</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {students.filter(s => s.isVerified).length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span className="text-purple-600 font-bold text-lg">✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by name, email, or student ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <Filter className="w-5 h-5 text-gray-500" />
+            <select 
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <select 
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+            >
+              <option value="all">All Departments</option>
+              <option value="computer-science">Computer Science</option>
+              <option value="engineering">Engineering</option>
+              <option value="business">Business</option>
+              <option value="mathematics">Mathematics</option>
+            </select>
+            <select 
+              value={selectedKycStatus}
+              onChange={(e) => setSelectedKycStatus(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+            >
+              <option value="all">All KYC Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Students Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Student List ({students.length})</h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="ml-3 text-gray-500">Loading students...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : students.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                    <div className="flex flex-col items-center">
+                      <GraduationCap className="w-12 h-12 text-gray-300 mb-2" />
+                      <p>No students found</p>
+                      <p className="text-sm">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                students.map((student) => (
+                  <tr key={student.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-semibold">
+                            {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {student.firstName} {student.lastName}
+                          </div>
+                          <div className="text-sm text-gray-500">ID: {student.studentId}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{student.email}</div>
+                      <div className="text-sm text-gray-500">{student.phone}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {student.department}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {student.courseName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(student.enrollmentDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        student.kycStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                        student.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {student.kycStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        student.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {student.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => handleViewStudent(student.id || student._id)}
+                          className="text-sky-600 hover:text-sky-900" 
+                          title="View Student Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleViewEnrollments(student)}
+                          className="text-blue-600 hover:text-blue-900" 
+                          title="View Enrollments"
+                        >
+                          <BookOpen className="w-4 h-4" />
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-900" title="Edit">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button className="text-red-600 hover:text-red-900" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {students.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Showing {students.length} of {totalStudents} students
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!hasPrevPage}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <span className="px-3 py-1 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!hasNextPage}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Student Detail Modal */}
+      {selectedStudentId && (
+        <StudentDetailModal
+          studentId={selectedStudentId}
+          isOpen={isDetailModalOpen}
+          onClose={handleCloseDetailModal}
+        />
+      )}
+
+      {/* Student Enrollments Modal */}
+      <StudentEnrollmentsModal
+        isOpen={isEnrollmentModalOpen}
+        onClose={handleCloseEnrollmentModal}
+        student={selectedStudent}
+      />
+    </div>
+  );
+};
+
+export default Students;

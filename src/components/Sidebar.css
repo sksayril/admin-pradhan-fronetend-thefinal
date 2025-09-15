@@ -1,0 +1,73 @@
+/* Sidebar Custom Styles */
+.sidebar-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Smooth scrolling for sidebar navigation */
+.sidebar-nav {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+}
+
+/* Ensure proper height calculation */
+.sidebar-container {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navigation area specific styles */
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  max-height: calc(100vh - 200px); /* Account for header and bottom sections */
+  height: 0; /* Force flex to work properly */
+}
+
+/* Fix for mobile viewport issues */
+@media (max-height: 600px) {
+  .sidebar-container {
+    height: 100vh;
+    max-height: 100vh;
+  }
+}
+
+/* Ensure sidebar doesn't interfere with main content */
+.sidebar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 50;
+}
+
+/* Responsive sidebar behavior */
+@media (min-width: 1024px) {
+  .sidebar-fixed {
+    position: relative;
+    height: 100vh;
+  }
+}
