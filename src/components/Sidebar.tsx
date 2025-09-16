@@ -18,7 +18,9 @@ import {
   Shield,
   HelpCircle,
   DollarSign,
-  Calendar
+  Calendar,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
@@ -100,6 +102,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           icon: DollarSign,
           description: 'Create and manage investment plans'
         },
+        { 
+          title: 'Pending Applications', 
+          path: '/society/pending-investment-applications', 
+          icon: AlertTriangle,
+          description: 'Review pending investment applications'
+        },
+        { 
+          title: 'Approved Applications', 
+          path: '/society/approved-investment-applications', 
+          icon: CheckCircle,
+          description: 'View approved investment applications'
+        },
+        { 
+          title: 'Rejected Applications', 
+          path: '/society/rejected-investment-applications', 
+          icon: XCircle,
+          description: 'View rejected investment applications'
+        },
       ]
     },
     {
@@ -144,11 +164,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           icon: Calendar,
           description: 'Manage student attendance and reports'
         },
+        // { 
+        //   title: 'Certificates', 
+        //   path: '/student/certificate', 
+        //   icon: Award,
+        //   description: 'Issue and manage certificates'
+        // },
         { 
-          title: 'Certificates', 
-          path: '/student/certificate', 
+          title: 'Certificate Management', 
+          path: '/student/certificate-management', 
           icon: Award,
-          description: 'Issue and manage certificates'
+          description: 'Manage student certificates and marksheets'
         },
         { 
           title: 'Marksheets', 
@@ -158,29 +184,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         },
       ]
     },
-    {
-      id: 'enrollment',
-      title: 'Enrollment Management',
-      icon: Users,
-      description: 'Manage student enrollments and approvals',
-      children: [
-        { 
-          title: 'Enrollment Management', 
-          path: '/student/enrollment-management', 
-          icon: Users,
-          description: 'Manage enrollments, approvals, and analytics'
-        },
-      ]
-    },
-    {
-      id: 'admin',
-      title: 'Admin Management',
-      icon: Settings,
-      description: 'Administrative functions and system management',
-      children: [
-        // Admin management features can be added here in the future
-      ]
-    },
+    // {
+    //   id: 'enrollment',
+    //   title: 'Enrollment Management',
+    //   icon: Users,
+    //   description: 'Manage student enrollments and approvals',
+    //   children: [
+    //     { 
+    //       title: 'Enrollment Management', 
+    //       path: '/student/enrollment-management', 
+    //       icon: Users,
+    //       description: 'Manage enrollments, approvals, and analytics'
+    //     },
+    //   ]
+    // },
+    // {
+    //   id: 'admin',
+    //   title: 'Admin Management',
+    //   icon: Settings,
+    //   description: 'Administrative functions and system management',
+    //   children: [
+    //     // Admin management features can be added here in the future
+    //   ]
+    // },
     {
       id: 'kyc',
       title: 'KYC Management',

@@ -1,0 +1,206 @@
+/* Marksheet Template Styles */
+.marksheet-template {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.4;
+  color: #333;
+}
+
+.marksheet-template * {
+  box-sizing: border-box;
+}
+
+/* Print Styles */
+@media print {
+  .marksheet-template {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  
+  .marksheet-template .no-print {
+    display: none !important;
+  }
+  
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
+/* Decorative Border Animation */
+@keyframes borderGlow {
+  0% { border-color: #e91e63; }
+  50% { border-color: #f8bbd9; }
+  100% { border-color: #e91e63; }
+}
+
+.marksheet-template:hover {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
+/* Watermark Styles */
+.marksheet-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.1;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Table Styles */
+.marksheet-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 11px;
+  table-layout: fixed;
+}
+
+.marksheet-table th,
+.marksheet-table td {
+  border: 1px solid #333;
+  padding: 4px 6px;
+  text-align: center;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.marksheet-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.marksheet-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Prevent text overflow in table cells */
+.marksheet-table td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marksheet-table td:first-child,
+.marksheet-table td:nth-child(2) {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Header Styles */
+.marksheet-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.marksheet-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #6a1b9a;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+.marksheet-subtitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: #6a1b9a;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Student Info Styles */
+.marksheet-student-info {
+  margin-bottom: 25px;
+  padding: 0 20px;
+}
+
+.marksheet-student-info div {
+  margin-bottom: 8px;
+}
+
+/* Summary Styles */
+.marksheet-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding: 0 20px;
+}
+
+/* Footer Styles */
+.marksheet-footer {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  font-size: 8px;
+  color: #666;
+}
+
+/* Government Logos */
+.marksheet-gov-logos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.marksheet-gov-logos > div {
+  text-align: center;
+  flex: 1;
+}
+
+/* Grade Scale Table */
+.marksheet-grade-scale {
+  margin-top: 10px;
+}
+
+.marksheet-grade-scale table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 7px;
+  border: 1px solid #333;
+}
+
+.marksheet-grade-scale th,
+.marksheet-grade-scale td {
+  border: 1px solid #333;
+  padding: 2px 3px;
+  text-align: center;
+}
+
+.marksheet-grade-scale th {
+  background-color: #f5f5f5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .marksheet-template {
+    width: 100% !important;
+    padding: 10px !important;
+  }
+  
+  .marksheet-summary {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .marksheet-gov-logos {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

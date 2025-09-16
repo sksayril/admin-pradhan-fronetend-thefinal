@@ -212,6 +212,15 @@ export interface EnhancedStudent {
     status: 'pending' | 'approved' | 'rejected';
   }[];
   kyc?: KYCInfo;
+  // New fields from the updated API
+  enrollments?: StudentEnrollment[];
+  enrollmentStats?: {
+    totalEnrollments: number;
+    activeEnrollments: number;
+    completedEnrollments: number;
+    totalCourses: number;
+    totalBatches: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -856,19 +865,28 @@ export interface StudentWithEnrollments {
 export interface StudentEnrollment {
   enrollmentId: string;
   enrollmentDate: string;
-  status: 'enrolled' | 'completed' | 'dropped' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  progress: number;
+  status: 'enrolled' | 'completed' | 'dropped' | 'suspended';
+  paymentStatus: 'pending' | 'paid' | 'partial' | 'refunded';
+  progress: {
+    completedLessons: string[];
+    overallProgress: number;
+    lastAccessedAt: string;
+  };
   course: {
     id: string;
     title: string;
     category: string;
     type: 'online' | 'offline' | 'hybrid';
+    instructor: {
+      name: string;
+      email: string;
+      phone?: string;
+      bio?: string;
+    };
+    duration: number;
+    durationUnit: 'days' | 'weeks' | 'months' | 'years';
     price: number;
     currency: string;
-    duration: number;
-    durationUnit: string;
-    instructor: string;
   };
   batch: {
     id: string;
@@ -1630,4 +1648,242 @@ export interface StudentAttendanceResponse {
     studentAttendance: StudentAttendanceSummary[];
     pagination: UserManagementPagination;
   };
+}
+
+// Investment Application Management Types
+export interface InvestmentApplication {
+  applicationId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  investmentAmount: number;
+  totalAmountPaid: number;
+  remainingAmount: number;
+  paymentStatus: 'pending' | 'partial' | 'completed';
+  emiProgress: {
+    total: number;
+    paid: number;
+    pending: number;
+    overdue: number;
+  };
+  member: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    memberId: string;
+    phoneNumber?: string;
+  };
+  plan: {
+    planName: string;
+    planType: 'FD' | 'RD' | 'CD';
+    interestRate: number;
+    tenureMonths: number;
+  };
+  applicationDate: string;
+  approvalDate?: string;
+  rejectionDate?: string;
+  approvedBy?: string;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  notes?: string[];
+  documents?: Array<{
+    id: string;
+    type: string;
+    url: string;
+    status: 'pending' | 'approved' | 'rejected';
+  }>;
+  emiSchedule?: Array<{
+    emiNumber: number;
+    dueDate: string;
+    amount: number;
+    status: 'pending' | 'paid' | 'overdue';
+  }>;
+  monthlyEMI?: number;
+  paymentMethod?: 'online' | 'cash' | 'bank_transfer';
+}
+
+export interface InvestmentApplicationFilters {
+  page?: number;
+  limit?: number;
+  planType?: 'FD' | 'RD' | 'CD';
+  memberId?: string;
+  search?: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  applicationDateFrom?: string;
+  applicationDateTo?: string;
+}
+
+export interface InvestmentApplicationsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    applications: InvestmentApplication[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalApplications: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+}
+
+export interface InvestmentApplicationDetailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    application: InvestmentApplication;
+  };
+}
+
+export interface ApproveInvestmentApplicationRequest {
+  notes?: string;
+}
+
+export interface RejectInvestmentApplicationRequest {
+  rejectionReason: string;
+  notes?: string;
+}
+
+export interface InvestmentApplicationActionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    application: {
+      applicationId: string;
+      status: 'approved' | 'rejected';
+      approvalDate?: string;
+      rejectionDate?: string;
+      approvedBy?: string;
+      rejectedBy?: string;
+      rejectionReason?: string;
+    };
+    investment?: {
+      investmentId: string;
+      status: 'active';
+      principalAmount: number;
+      expectedMaturityAmount: number;
+    };
+  };
+}
+
+// Marksheet Types
+export interface Subject {
+  subjectName: string;
+  subjectCode: string;
+  credits: number;
+  marksObtained: number;
+  maxMarks: number;
+  grade: string;
+  gradePoints: number;
+}
+
+export interface CreateMarksheetRequest {
+  studentId: string;
+  courseId: string;
+  batchId: string;
+  academicYear: string;
+  semester: string;
+  examinationType: 'Regular' | 'Supplementary' | 'Improvement';
+  subjects: Subject[];
+  examinationDate: string;
+  resultDate: string;
+  remarks?: string;
+}
+
+export interface Marksheet {
+  _id: string;
+  marksheetNumber: string;
+  studentId: string;
+  studentInfo: {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    department: string;
+    year: string;
+  };
+  courseId: string;
+  courseInfo: {
+    courseId: string;
+    title: string;
+    category: string;
+    instructor: string;
+    duration: string;
+  };
+  batchId: string;
+  batchInfo: {
+    batchId: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+  };
+  academicYear: string;
+  semester: string;
+  examinationType: 'Regular' | 'Supplementary' | 'Improvement';
+  subjects: Subject[];
+  totalMarks: number;
+  maxTotalMarks: number;
+  percentage: number;
+  cgpa: number;
+  overallGrade: string;
+  result: 'PASS' | 'FAIL';
+  status: 'draft' | 'published' | 'verified';
+  isVerified: boolean;
+  verificationCode: string;
+  examinationDate: string;
+  resultDate: string;
+  remarks?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MarksheetResponse {
+  success: boolean;
+  message: string;
+  data: {
+    marksheet: Marksheet;
+    student: {
+      studentId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      department: string;
+      year: string;
+    };
+    course: {
+      courseId: string;
+      title: string;
+      category: string;
+      instructor: string;
+      duration: string;
+    };
+    batch: {
+      batchId: string;
+      name: string;
+      startDate: string;
+      endDate: string;
+    };
+  };
+}
+
+export interface MarksheetFilters {
+  search?: string;
+  studentId?: string;
+  courseId?: string;
+  batchId?: string;
+  academicYear?: string;
+  semester?: string;
+  examinationType?: 'Regular' | 'Supplementary' | 'Improvement';
+  status?: 'draft' | 'published' | 'verified';
+  isVerified?: boolean;
+  result?: 'PASS' | 'FAIL';
+  department?: string;
+  year?: string;
+}
+
+export interface MarksheetPagination {
+  currentPage: number;
+  totalPages: number;
+  totalMarksheets: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }

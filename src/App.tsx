@@ -12,6 +12,7 @@ import Penalty from './pages/society/Penalty';
 import Students from './pages/student/Students';
 import CourseBatch from './pages/student/CourseBatch';
 import Certificate from './pages/student/Certificate';
+import CertificateManagement from './pages/student/CertificateManagement';
 import Marksheet from './pages/student/Marksheet';
 import KYCDashboard from './pages/kyc/KYCDashboard';
 import PendingKYC from './pages/kyc/PendingKYC';
@@ -25,6 +26,9 @@ import PaymentHistory from './pages/student/PaymentHistory';
 import AttendanceManagement from './pages/student/AttendanceManagement';
 import EnrollmentManagement from './pages/student/EnrollmentManagement';
 import InvestmentPlansSociety from './pages/society/InvestmentPlans';
+import PendingInvestmentApplications from './pages/society/PendingInvestmentApplications';
+import ApprovedInvestmentApplications from './pages/society/ApprovedInvestmentApplications';
+import RejectedInvestmentApplications from './pages/society/RejectedInvestmentApplications';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const AppRoutes: React.FC = () => {
@@ -57,6 +61,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/student/students" element={<Students />} />
             <Route path="/student/course-batch" element={<CourseBatch />} />
             <Route path="/student/certificate" element={<Certificate />} />
+            <Route path="/student/certificate-management" element={<CertificateManagement />} />
             <Route path="/student/marksheet" element={<Marksheet />} />
             <Route path="/student/courses" element={<Courses />} />
             <Route path="/student/course-batches" element={<CourseBatches />} />
@@ -65,6 +70,9 @@ const AppRoutes: React.FC = () => {
             <Route path="/student/attendance" element={<AttendanceManagement />} />
             <Route path="/student/enrollment-management" element={<EnrollmentManagement />} />
             <Route path="/society/investment-plans" element={<InvestmentPlansSociety />} />
+            <Route path="/society/pending-investment-applications" element={<PendingInvestmentApplications />} />
+            <Route path="/society/approved-investment-applications" element={<ApprovedInvestmentApplications />} />
+            <Route path="/society/rejected-investment-applications" element={<RejectedInvestmentApplications />} />
             <Route path="/kyc" element={<KYCDashboard />} />
             <Route path="/kyc/pending" element={<PendingKYC />} />
             <Route path="/kyc/students" element={<StudentKYCPage />} />

@@ -1,3 +1,6 @@
+/* Import marksheet styles */
+@import './styles/marksheet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

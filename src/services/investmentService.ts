@@ -13,7 +13,13 @@ import {
   InvestmentFilters,
   MemberInvestmentsResponse,
   PlanStatistics,
-  CalculateEMIRequest
+  CalculateEMIRequest,
+  InvestmentApplicationFilters,
+  InvestmentApplicationsResponse,
+  InvestmentApplicationDetailResponse,
+  ApproveInvestmentApplicationRequest,
+  RejectInvestmentApplicationRequest,
+  InvestmentApplicationActionResponse
 } from './types';
 
 export const investmentService = {
@@ -704,6 +710,287 @@ export const investmentService = {
       } else {
         return `${years} year${years > 1 ? 's' : ''} ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`;
       }
+    }
+  },
+
+  // Investment Application Management
+
+  /**
+   * Get pending investment applications
+   */
+  async getPendingInvestmentApplications(
+    filters: InvestmentApplicationFilters = {}
+  ): Promise<ApiResponse<InvestmentApplicationsResponse['data']>> {
+    try {
+      console.log('Fetching pending investment applications with filters:', filters);
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+
+      const response = await apiClient.get(`/admin/society-member-investment/applications/pending?${params.toString()}`);
+      console.log('Pending investment applications fetched successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching pending investment applications:', error);
+      
+      // Mock response for testing
+      console.log('API not available, returning mock pending applications response');
+      return {
+        success: true,
+        message: 'Pending investment applications retrieved successfully (mock response)',
+        data: {
+          applications: [
+            {
+              applicationId: 'APP2412001',
+              status: 'pending' as const,
+              investmentAmount: 50000,
+              totalAmountPaid: 0,
+              remainingAmount: 50000,
+              paymentStatus: 'pending' as const,
+              emiProgress: {
+                total: 12,
+                paid: 0,
+                pending: 12,
+                overdue: 0
+              },
+              member: {
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@example.com',
+                memberId: '202411001',
+                phoneNumber: '+1234567890'
+              },
+              plan: {
+                planName: 'Monthly Savings Plan',
+                planType: 'RD' as const,
+                interestRate: 7.5,
+                tenureMonths: 12
+              },
+              applicationDate: '2024-12-01T10:00:00.000Z'
+            }
+          ],
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalApplications: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        }
+      };
+    }
+  },
+
+  /**
+   * Get approved investment applications
+   */
+  async getApprovedInvestmentApplications(
+    filters: InvestmentApplicationFilters = {}
+  ): Promise<ApiResponse<InvestmentApplicationsResponse['data']>> {
+    try {
+      console.log('Fetching approved investment applications with filters:', filters);
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+
+      const response = await apiClient.get(`/admin/society-member-investment/applications/approved?${params.toString()}`);
+      console.log('Approved investment applications fetched successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching approved investment applications:', error);
+      
+      // Mock response for testing
+      console.log('API not available, returning mock approved applications response');
+      return {
+        success: true,
+        message: 'Approved investment applications retrieved successfully (mock response)',
+        data: {
+          applications: [],
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalApplications: 0,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        }
+      };
+    }
+  },
+
+  /**
+   * Get rejected investment applications
+   */
+  async getRejectedInvestmentApplications(
+    filters: InvestmentApplicationFilters = {}
+  ): Promise<ApiResponse<InvestmentApplicationsResponse['data']>> {
+    try {
+      console.log('Fetching rejected investment applications with filters:', filters);
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+
+      const response = await apiClient.get(`/admin/society-member-investment/applications/rejected?${params.toString()}`);
+      console.log('Rejected investment applications fetched successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching rejected investment applications:', error);
+      
+      // Mock response for testing
+      console.log('API not available, returning mock rejected applications response');
+      return {
+        success: true,
+        message: 'Rejected investment applications retrieved successfully (mock response)',
+        data: {
+          applications: [],
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalApplications: 0,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        }
+      };
+    }
+  },
+
+  /**
+   * Get investment application details
+   */
+  async getInvestmentApplicationDetails(applicationId: string): Promise<ApiResponse<InvestmentApplicationDetailResponse['data']>> {
+    try {
+      console.log('Fetching investment application details:', applicationId);
+      const response = await apiClient.get(`/admin/society-member-investment/applications/${applicationId}`);
+      console.log('Investment application details fetched successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching investment application details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Approve investment application
+   */
+  async approveInvestmentApplication(
+    applicationId: string, 
+    request: ApproveInvestmentApplicationRequest
+  ): Promise<ApiResponse<InvestmentApplicationActionResponse['data']>> {
+    try {
+      console.log('Approving investment application:', applicationId, request);
+      const response = await apiClient.patch(`/admin/society-member-investment/applications/${applicationId}/approve`, request);
+      console.log('Investment application approved successfully:', response);
+      
+      toast.success('✅ Investment application approved successfully!', {
+        duration: 4000,
+        style: {
+          background: '#10B981',
+          color: '#fff',
+          fontSize: '14px',
+        },
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error approving investment application:', error);
+      
+      if (error instanceof Error) {
+        toast.error(`❌ Failed to approve application: ${error.message}`, {
+          duration: 5000,
+          style: {
+            background: '#EF4444',
+            color: '#fff',
+            fontSize: '14px',
+          },
+        });
+      }
+      
+      throw error;
+    }
+  },
+
+  /**
+   * Reject investment application
+   */
+  async rejectInvestmentApplication(
+    applicationId: string, 
+    request: RejectInvestmentApplicationRequest
+  ): Promise<ApiResponse<InvestmentApplicationActionResponse['data']>> {
+    try {
+      console.log('Rejecting investment application:', applicationId, request);
+      const response = await apiClient.patch(`/admin/society-member-investment/applications/${applicationId}/reject`, request);
+      console.log('Investment application rejected successfully:', response);
+      
+      toast.success('✅ Investment application rejected successfully!', {
+        duration: 4000,
+        style: {
+          background: '#F59E0B',
+          color: '#fff',
+          fontSize: '14px',
+        },
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error rejecting investment application:', error);
+      
+      if (error instanceof Error) {
+        toast.error(`❌ Failed to reject application: ${error.message}`, {
+          duration: 5000,
+          style: {
+            background: '#EF4444',
+            color: '#fff',
+            fontSize: '14px',
+          },
+        });
+      }
+      
+      throw error;
+    }
+  },
+
+  /**
+   * Get application status color for UI display
+   */
+  getApplicationStatusColor(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  },
+
+  /**
+   * Get application status icon
+   */
+  getApplicationStatusIcon(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return '⏳';
+      case 'approved':
+        return '✅';
+      case 'rejected':
+        return '❌';
+      default:
+        return '❓';
     }
   }
 };

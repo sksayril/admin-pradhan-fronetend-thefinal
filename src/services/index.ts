@@ -11,6 +11,7 @@ export { enrollmentService } from './enrollmentService';
 export { feeService } from './feeService';
 export { attendanceService } from './attendanceService';
 export { investmentService } from './investmentService';
+export { marksheetService } from './marksheetService';
 
 // Export types
 export * from './types';
@@ -43,9 +44,7 @@ export type {
   UpdateBatchRequest as UpdateStudentBatchRequest,
   Certificate,
   CreateCertificateRequest,
-  Marksheet,
   SubjectMarks,
-  CreateMarksheetRequest,
   Course as StudentCourse,
 } from './studentService';
 
@@ -135,4 +134,10 @@ export type {
   AttendanceSessionsResponse,
   AttendanceReportResponse,
   StudentAttendanceResponse,
+  Subject,
+  CreateMarksheetRequest,
+  Marksheet,
+  MarksheetResponse,
+  MarksheetFilters,
+  MarksheetPagination,
 } from './types';

@@ -58,6 +58,44 @@ class UserManagementService {
     }
   }
 
+  // Get Students (Alias for getAllStudents for compatibility)
+  async getStudents(
+    params: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      search?: string;
+      department?: string;
+      year?: string;
+      status?: string;
+      kycStatus?: 'pending' | 'approved' | 'rejected';
+    } = {}
+  ): Promise<StudentsResponse> {
+    // Convert status string to boolean filters
+    const filters: StudentFilters = {
+      search: params.search,
+      department: params.department,
+      year: params.year,
+      kycStatus: params.kycStatus
+    };
+
+    // Handle status filter
+    if (params.status === 'active') {
+      filters.isActive = true;
+    } else if (params.status === 'inactive') {
+      filters.isActive = false;
+    }
+
+    return this.getAllStudents(
+      params.page || 1,
+      params.limit || 10,
+      filters,
+      params.sortBy,
+      params.sortOrder || 'asc'
+    );
+  }
+
   // Get Student by ID
   async getStudentById(id: string): Promise<EnhancedStudent> {
     try {
