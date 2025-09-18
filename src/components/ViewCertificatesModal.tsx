@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Award, FileText, User, BookOpen, GraduationCap, CheckCircle, Clock, AlertCircle, Download, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { certificateService } from '../services/certificateService';
@@ -112,7 +112,7 @@ const ViewCertificatesModal: React.FC<ViewCertificatesModalProps> = ({
   const [selectedCertificate, setSelectedCertificate] = useState<any>(null);
   const pdfGeneratorRef = useRef<CertificatePDFGeneratorRef>(null);
 
-  const fetchCertificates = async (pageNum: number = 1) => {
+  const fetchCertificates = useCallback(async (pageNum: number = 1) => {
     setLoading(true);
     setError(null);
     try {
@@ -136,7 +136,7 @@ const ViewCertificatesModal: React.FC<ViewCertificatesModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [student._id, filters.certificateType, filters.academicYear, filters.status]);
 
   useEffect(() => {
     if (isOpen && student) {
@@ -147,7 +147,7 @@ const ViewCertificatesModal: React.FC<ViewCertificatesModalProps> = ({
       setError(null);
       setPage(1);
     }
-  }, [isOpen, student]);
+  }, [isOpen, student, fetchCertificates]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

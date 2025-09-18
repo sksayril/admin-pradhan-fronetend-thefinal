@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Eye, Download, FileText, Calendar, Award, CheckCircle, XCircle, User } from 'lucide-react';
 import { marksheetService } from '../services';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ interface ViewMarksheetsModalProps {
     studentId: string;
     email: string;
     department?: string;
-    year?: string;
+    year?: string
   };
 }
 
@@ -128,7 +128,7 @@ const ViewMarksheetsModal: React.FC<ViewMarksheetsModalProps> = ({
   const [showMarksheetDetail, setShowMarksheetDetail] = useState(false);
   const pdfGeneratorRef = useRef<MarksheetPDFGeneratorRef>(null);
 
-  const loadMarksheets = async () => {
+  const loadMarksheets = useCallback(async () => {
     if (!student?._id) return;
 
     setLoading(true);
@@ -151,13 +151,13 @@ const ViewMarksheetsModal: React.FC<ViewMarksheetsModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [student?._id, currentPage, filters]);
 
   useEffect(() => {
     if (isOpen && student?._id) {
       loadMarksheets();
     }
-  }, [isOpen, student?._id, currentPage, filters]);
+  }, [isOpen, student?._id, loadMarksheets]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

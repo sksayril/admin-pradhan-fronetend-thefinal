@@ -12,6 +12,9 @@ export { feeService } from './feeService';
 export { attendanceService } from './attendanceService';
 export { investmentService } from './investmentService';
 export { marksheetService } from './marksheetService';
+export { paymentService } from './paymentService';
+export { loanService } from './loanService';
+export { thumbnailService } from './thumbnailService';
 
 // Export types
 export * from './types';
@@ -141,3 +144,44 @@ export type {
   MarksheetFilters,
   MarksheetPagination,
 } from './types';
+
+// Re-export payment types
+export type {
+  PendingCashPayment,
+  PendingEMI,
+  EMIMonthlyGroup,
+  MemberPaymentSummary,
+  PaymentStatistics,
+  PendingCashPaymentsResponse,
+  PendingEMIsResponse,
+  EMIMonthlyResponse,
+  CashPaymentVerificationRequest,
+  CashPaymentVerificationResponse,
+  PaymentFilters,
+} from './paymentService';
+
+// Re-export loan types
+export type {
+  LoanRequest,
+  LoanStatistics,
+  MemberLoanSummary,
+  LoanFilters,
+  LoanRequestsResponse,
+  LoanApprovalRequest,
+  LoanRejectionRequest,
+  LoanDisbursementRequest,
+  LoanApprovalResponse,
+  LoanRejectionResponse,
+  LoanDisbursementResponse,
+} from './loanService';
+
+// Re-export thumbnail types
+export type {
+  Thumbnail,
+  ThumbnailFilters,
+  ThumbnailUploadRequest,
+  ThumbnailUpdateRequest,
+  ThumbnailBulkDeleteRequest,
+  ThumbnailUploadResponse,
+  ThumbnailsResponse,
+} from './thumbnailService';

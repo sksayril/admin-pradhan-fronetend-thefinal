@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { GraduationCap, Plus, Search, Filter, Download, AlertCircle, RefreshCw, Edit, Trash2, Eye, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { GraduationCap, Plus, Search, Filter, Download, RefreshCw, Edit, Trash2, Eye, BookOpen } from 'lucide-react';
 import { userManagementService, StudentFilters, EnhancedStudent } from '../../services';
 import StudentDetailModal from '../../components/StudentDetailModal';
 import StudentEnrollmentsModal from '../../components/StudentEnrollmentsModal';
+import { TableSkeleton, CardSkeleton } from '../../components/LoadingSkeleton';
+import ErrorDisplay from '../../components/ErrorDisplay';
 
-const Students: React.FC = () => {
+const Students: React.FC = React.memo(() => {
   // State for students data
   const [students, setStudents] = useState<EnhancedStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ const Students: React.FC = () => {
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
 
   // Load students data
-  const loadStudents = async (page: number = 1) => {
+  const loadStudents = useCallback(async (page: number = 1) => {
     setLoading(true);
     setError(null);
     
@@ -73,21 +75,21 @@ const Students: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, searchTerm, selectedStatus, selectedDepartment, selectedKycStatus]);
 
   // Load students on component mount and when filters change
   useEffect(() => {
     loadStudents(1);
-  }, [searchTerm, selectedStatus, selectedDepartment, selectedKycStatus]);
+  }, [loadStudents]);
 
   // Handle page change
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     loadStudents(page);
-  };
+  }, [loadStudents]);
 
   // Handle export
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     try {
       const currentFilters: StudentFilters = {
         ...filters,
@@ -102,36 +104,43 @@ const Students: React.FC = () => {
       console.error('Error exporting students:', err);
       setError('Failed to export students. Please try again.');
     }
-  };
+  }, [filters, searchTerm, selectedStatus, selectedDepartment, selectedKycStatus]);
 
   // Handle refresh
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     loadStudents(currentPage);
-  };
+  }, [loadStudents, currentPage]);
 
   // Handle view student details
-  const handleViewStudent = (studentId: string) => {
+  const handleViewStudent = useCallback((studentId: string) => {
     setSelectedStudentId(studentId);
     setIsDetailModalOpen(true);
-  };
+  }, []);
 
   // Handle close detail modal
-  const handleCloseDetailModal = () => {
+  const handleCloseDetailModal = useCallback(() => {
     setIsDetailModalOpen(false);
     setSelectedStudentId(null);
-  };
+  }, []);
 
   // Handle view student enrollments
-  const handleViewEnrollments = (student: EnhancedStudent) => {
+  const handleViewEnrollments = useCallback((student: EnhancedStudent) => {
     setSelectedStudent(student);
     setIsEnrollmentModalOpen(true);
-  };
+  }, []);
 
   // Handle close enrollment modal
-  const handleCloseEnrollmentModal = () => {
+  const handleCloseEnrollmentModal = useCallback(() => {
     setIsEnrollmentModalOpen(false);
     setSelectedStudent(null);
-  };
+  }, []);
+
+  // Memoized statistics calculations
+  const statistics = useMemo(() => ({
+    activeStudents: students.filter(s => s.isActive).length,
+    kycPending: students.filter(s => s.kycStatus === 'pending').length,
+    verified: students.filter(s => s.isVerified).length,
+  }), [students]);
 
   return (
     <div className="space-y-6">
@@ -146,6 +155,7 @@ const Students: React.FC = () => {
             onClick={handleRefresh}
             disabled={loading}
             className="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            aria-label="Refresh students list"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -153,11 +163,16 @@ const Students: React.FC = () => {
           <button
             onClick={handleExport}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            aria-label="Export students data"
           >
             <Download className="w-4 h-4" />
             <span>Export</span>
           </button>
-          <button className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button 
+            className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            aria-label="Add new student"
+            disabled
+          >
             <Plus className="w-5 h-5" />
             <span>Add Student</span>
           </button>
@@ -165,75 +180,73 @@ const Students: React.FC = () => {
       </div>
 
       {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700">{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      <ErrorDisplay
+        error={error}
+        onRetry={handleRefresh}
+        onDismiss={() => setError(null)}
+        title="Failed to load students"
+      />
 
       {/* Student Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-2xl font-bold text-gray-800">{totalStudents}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Students</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {students.filter(s => s.isActive).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-green-600 font-bold text-lg">✓</span>
+      {loading ? (
+        <CardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Students</p>
+                <p className="text-2xl font-bold text-gray-800">{totalStudents}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
           </div>
-        </div>
+          
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Students</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {statistics.activeStudents}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <span className="text-green-600 font-bold text-lg">✓</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">KYC Pending</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {students.filter(s => s.kycStatus === 'pending').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <span className="text-yellow-600 font-bold text-lg">⏳</span>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">KYC Pending</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {statistics.kycPending}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <span className="text-yellow-600 font-bold text-lg">⏳</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {students.filter(s => s.isVerified).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-purple-600 font-bold text-lg">✓</span>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Verified</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {statistics.verified}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-bold text-lg">✓</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Search and Filters */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -246,7 +259,12 @@ const Students: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              aria-label="Search students"
+              aria-describedby="search-help"
             />
+            <div id="search-help" className="sr-only">
+              Enter student name, email, or student ID to filter the list
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             <Filter className="w-5 h-5 text-gray-500" />
@@ -254,6 +272,7 @@ const Students: React.FC = () => {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -263,6 +282,7 @@ const Students: React.FC = () => {
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              aria-label="Filter by department"
             >
               <option value="all">All Departments</option>
               <option value="computer-science">Computer Science</option>
@@ -274,6 +294,7 @@ const Students: React.FC = () => {
               value={selectedKycStatus}
               onChange={(e) => setSelectedKycStatus(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+              aria-label="Filter by KYC status"
             >
               <option value="all">All KYC Status</option>
               <option value="pending">Pending</option>
@@ -291,7 +312,7 @@ const Students: React.FC = () => {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" role="table" aria-label="Students table">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
@@ -307,11 +328,8 @@ const Students: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="ml-3 text-gray-500">Loading students...</span>
-                    </div>
+                  <td colSpan={8} className="px-6 py-8">
+                    <TableSkeleton rows={5} columns={8} />
                   </td>
                 </tr>
               ) : students.length === 0 ? (
@@ -326,7 +344,7 @@ const Students: React.FC = () => {
                 </tr>
               ) : (
                 students.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50">
+                  <tr key={student.id || student._id || student.studentId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center">
@@ -377,6 +395,7 @@ const Students: React.FC = () => {
                           onClick={() => handleViewStudent(student.id || student._id)}
                           className="text-sky-600 hover:text-sky-900" 
                           title="View Student Details"
+                          aria-label={`View details for ${student.firstName} ${student.lastName}`}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -384,13 +403,24 @@ const Students: React.FC = () => {
                           onClick={() => handleViewEnrollments(student)}
                           className="text-blue-600 hover:text-blue-900" 
                           title="View Enrollments"
+                          aria-label={`View enrollments for ${student.firstName} ${student.lastName}`}
                         >
                           <BookOpen className="w-4 h-4" />
                         </button>
-                        <button className="text-gray-600 hover:text-gray-900" title="Edit">
+                        <button 
+                          className="text-gray-600 hover:text-gray-900" 
+                          title="Edit"
+                          aria-label={`Edit ${student.firstName} ${student.lastName}`}
+                          disabled
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900" title="Delete">
+                        <button 
+                          className="text-red-600 hover:text-red-900" 
+                          title="Delete"
+                          aria-label={`Delete ${student.firstName} ${student.lastName}`}
+                          disabled
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -413,16 +443,18 @@ const Students: React.FC = () => {
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={!hasPrevPage}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                aria-label="Go to previous page"
               >
                 Previous
               </button>
-              <span className="px-3 py-1 text-sm">
+              <span className="px-3 py-1 text-sm" aria-live="polite">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={!hasNextPage}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                aria-label="Go to next page"
               >
                 Next
               </button>
@@ -448,6 +480,8 @@ const Students: React.FC = () => {
       />
     </div>
   );
-};
+});
+
+Students.displayName = 'Students';
 
 export default Students;

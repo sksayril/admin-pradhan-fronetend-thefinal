@@ -29,7 +29,31 @@ import InvestmentPlansSociety from './pages/society/InvestmentPlans';
 import PendingInvestmentApplications from './pages/society/PendingInvestmentApplications';
 import ApprovedInvestmentApplications from './pages/society/ApprovedInvestmentApplications';
 import RejectedInvestmentApplications from './pages/society/RejectedInvestmentApplications';
+import PaymentManagement from './pages/society/PaymentManagement';
+import LoanManagement from './pages/society/LoanManagement';
+import ThumbnailManagement from './pages/society/ThumbnailManagement';
 import ErrorBoundary from './components/ErrorBoundary';
+
+// 404 Not Found Component
+const NotFound: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="text-4xl text-red-600">404</span>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
+        <p className="text-gray-600 mb-8">The page you're looking for doesn't exist.</p>
+        <button
+          onClick={() => window.history.back()}
+          className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-lg transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -73,11 +97,23 @@ const AppRoutes: React.FC = () => {
             <Route path="/society/pending-investment-applications" element={<PendingInvestmentApplications />} />
             <Route path="/society/approved-investment-applications" element={<ApprovedInvestmentApplications />} />
             <Route path="/society/rejected-investment-applications" element={<RejectedInvestmentApplications />} />
+            <Route path="/society/payment-management" element={<PaymentManagement />} />
+            <Route path="/society/loan-management" element={<LoanManagement />} />
+            <Route path="/society/thumbnail-management" element={<ThumbnailManagement />} />
             <Route path="/kyc" element={<KYCDashboard />} />
             <Route path="/kyc/pending" element={<PendingKYC />} />
             <Route path="/kyc/students" element={<StudentKYCPage />} />
             <Route path="/kyc/society-members" element={<SocietyMemberKYCPage />} />
             <Route path="/kyc/approved" element={<ApprovedKYC />} />
+            
+            {/* Placeholder routes for sidebar links that don't have pages yet */}
+            <Route path="/reports/financial" element={<div className="p-6"><h1 className="text-2xl font-bold">Financial Reports</h1><p className="text-gray-600 mt-2">This page is under development.</p></div>} />
+            <Route path="/reports/students" element={<div className="p-6"><h1 className="text-2xl font-bold">Student Reports</h1><p className="text-gray-600 mt-2">This page is under development.</p></div>} />
+            <Route path="/reports/society" element={<div className="p-6"><h1 className="text-2xl font-bold">Society Reports</h1><p className="text-gray-600 mt-2">This page is under development.</p></div>} />
+            <Route path="/reports/kyc" element={<div className="p-6"><h1 className="text-2xl font-bold">KYC Reports</h1><p className="text-gray-600 mt-2">This page is under development.</p></div>} />
+            
+            {/* 404 Fallback - must be last */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
       )}

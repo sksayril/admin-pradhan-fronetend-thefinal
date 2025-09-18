@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Search, 
   Eye, 
@@ -51,7 +51,7 @@ const CertificateManagement: React.FC = () => {
   const [selectedMarksheetNumber, setSelectedMarksheetNumber] = useState<string>('');
 
   // Fetch students
-  const fetchStudents = async (page: number = 1) => {
+  const fetchStudents = useCallback(async (page: number = 1) => {
     try {
       setLoading(true);
       setError(null);
@@ -81,11 +81,11 @@ const CertificateManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, departmentFilter, yearFilter, statusFilter, kycStatusFilter]);
 
   useEffect(() => {
     fetchStudents();
-  }, [searchTerm, departmentFilter, yearFilter, statusFilter, kycStatusFilter]);
+  }, [fetchStudents]);
 
   // Handle search with debouncing
   useEffect(() => {
@@ -94,7 +94,7 @@ const CertificateManagement: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, fetchStudents]);
 
   const handleGenerateMarksheet = (student: EnhancedStudent) => {
     setSelectedStudent(student);

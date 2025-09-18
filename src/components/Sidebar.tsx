@@ -13,14 +13,13 @@ import {
   ChevronDown,
   ChevronRight,
   X,
-  Settings,
   LogOut,
   Shield,
-  HelpCircle,
   DollarSign,
   Calendar,
   CheckCircle,
-  XCircle
+  XCircle,
+  Image
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
@@ -119,6 +118,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           path: '/society/rejected-investment-applications', 
           icon: XCircle,
           description: 'View rejected investment applications'
+        },
+        { 
+          title: 'Payment Management', 
+          path: '/society/payment-management', 
+          icon: CreditCard,
+          description: 'Manage payments and EMIs'
+        },
+        { 
+          title: 'Loan Management', 
+          path: '/society/loan-management', 
+          icon: Banknote,
+          description: 'Manage loan requests and approvals'
+        },
+        { 
+          title: 'Thumbnail Management', 
+          path: '/society/thumbnail-management', 
+          icon: Image,
+          description: 'Manage thumbnails and images'
         },
       ]
     },
@@ -273,20 +290,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     }
   ];
 
-  const bottomMenuItems = [
-    {
-      id: 'settings',
-      title: 'Settings',
-      icon: Settings,
-      path: '/settings'
-    },
-    {
-      id: 'help',
-      title: 'Help & Support',
-      icon: HelpCircle,
-      path: '/help'
-    }
-  ];
+  const bottomMenuItems: Array<{
+    id: string;
+    title: string;
+    icon: any;
+    path: string;
+  }> = [];
 
   return (
     <>
