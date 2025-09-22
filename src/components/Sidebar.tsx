@@ -137,6 +137,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           icon: Image,
           description: 'Manage thumbnails and images'
         },
+        { 
+          title: 'CD Investment Management', 
+          path: '/society/cd-investment-management', 
+          icon: DollarSign,
+          description: 'Manage Certificate of Deposit investments'
+        },
       ]
     },
     {

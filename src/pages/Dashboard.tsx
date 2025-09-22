@@ -1,153 +1,439 @@
-import React from 'react';
-import { Users, CreditCard, GraduationCap, TrendingUp, DollarSign, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, TrendingUp, TrendingDown, Activity, Server } from 'lucide-react';
+import { DashboardData } from '../services/types';
+import { DashboardService } from '../services/dashboardService';
+import StatisticsCards from '../components/dashboard/StatisticsCards';
+import UserGrowthChart from '../components/charts/UserGrowthChart';
+import FinancialChart from '../components/charts/FinancialChart';
+import DepartmentChart from '../components/charts/DepartmentChart';
+import StatusBreakdownChart from '../components/charts/StatusBreakdownChart';
+import RecentActivities from '../components/dashboard/RecentActivities';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import ErrorDisplay from '../components/ErrorDisplay';
 
 const Dashboard: React.FC = () => {
-  const stats = [
-    {
-      title: 'Total Students',
-      value: '2,543',
-      change: '+12%',
-      changeType: 'positive',
-      icon: GraduationCap,
-      color: 'bg-sky-500'
-    },
-    {
-      title: 'Society Members',
-      value: '1,234',
-      change: '+5%',
-      changeType: 'positive',
-      icon: Users,
-      color: 'bg-green-500'
-    },
-    {
-      title: 'Total Payments',
-      value: '$45,678',
-      change: '+8%',
-      changeType: 'positive',
-      icon: DollarSign,
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'Pending Loans',
-      value: '123',
-      change: '-3%',
-      changeType: 'negative',
-      icon: CreditCard,
-      color: 'bg-orange-500'
-    },
-    {
-      title: 'Penalties',
-      value: '45',
-      change: '+2%',
-      changeType: 'positive',
-      icon: AlertCircle,
-      color: 'bg-red-500'
-    },
-    {
-      title: 'Revenue Growth',
-      value: '23.5%',
-      change: '+1.2%',
-      changeType: 'positive',
-      icon: TrendingUp,
-      color: 'bg-purple-500'
-    }
-  ];
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const recentActivities = [
-    { id: 1, action: 'New student enrollment', user: 'John Doe', time: '2 minutes ago' },
-    { id: 2, action: 'Payment received', user: 'Jane Smith', time: '15 minutes ago' },
-    { id: 3, action: 'Loan application submitted', user: 'Mike Johnson', time: '1 hour ago' },
-    { id: 4, action: 'Certificate issued', user: 'Sarah Wilson', time: '2 hours ago' },
-    { id: 5, action: 'Penalty imposed', user: 'David Brown', time: '3 hours ago' },
-  ];
+  const loadDashboardData = async (showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+      setError(null);
+
+      console.log('Loading dashboard data...');
+      const response = await DashboardService.getDashboardData();
+      console.log('Dashboard response:', response);
+      console.log('Response structure:', {
+        hasAdmin: !!response.admin,
+        hasOverview: !!response.overview,
+        hasInvestments: !!response.investments,
+        hasLoans: !!response.loans,
+        hasFees: !!response.fees,
+        hasAcademics: !!response.academics,
+        hasCharts: !!response.charts,
+        hasSummary: !!response.summary,
+        overviewKeys: response.overview ? Object.keys(response.overview) : 'no overview',
+        investmentsKeys: response.investments ? Object.keys(response.investments) : 'no investments'
+      });
+      setDashboardData(response);
+    } catch (err: any) {
+      console.error('Dashboard error:', err);
+      // For now, set mock data to prevent crashes while API is being developed
+      const mockData: DashboardData = {
+        admin: {
+          id: '1',
+          name: 'Admin User',
+          email: 'admin@example.com',
+          role: 'admin',
+          lastLogin: new Date().toISOString()
+        },
+        overview: {
+          totalUsers: 0,
+          totalStudents: 0,
+          totalSocietyMembers: 0,
+          totalAdmins: 1,
+          activeUsers: 0,
+          newUsersThisMonth: 0
+        },
+        investments: {
+          cdInvestments: { total: 0, totalAmount: 0, pending: 0, approved: 0 },
+          regularInvestments: { total: 0, totalAmount: 0, pending: 0 },
+          combined: { totalInvestments: 0, totalAmount: 0 }
+        },
+        loans: {
+          totalRequests: 0,
+          totalAmount: 0,
+          pending: 0,
+          approved: 0,
+          disbursed: 0
+        },
+        fees: {
+          totalRequests: 0,
+          totalAmount: 0,
+          pending: 0,
+          totalPayments: 0,
+          totalCollected: 0
+        },
+        academics: {
+          totalCourses: 0,
+          totalBatches: 0,
+          totalEnrollments: 0,
+          activeEnrollments: 0,
+          totalAttendanceRecords: 0,
+          attendanceThisMonth: 0
+        },
+        charts: {
+          userGrowth: { students: [], societyMembers: [] },
+          financial: { cdInvestments: [], loans: [], fees: [] }
+        },
+        monthlyStats: {
+          current: {
+            students: 0,
+            societyMembers: 0,
+            cdInvestments: { count: 0, amount: 0 },
+            loans: { count: 0, amount: 0 },
+            fees: { count: 0, amount: 0 }
+          },
+          last: {
+            students: 0,
+            societyMembers: 0,
+            cdInvestments: { count: 0, amount: 0 },
+            loans: { count: 0, amount: 0 },
+            fees: { count: 0, amount: 0 }
+          },
+          growth: {
+            students: 0,
+            societyMembers: 0,
+            cdInvestments: 0,
+            loans: 0,
+            fees: 0
+          }
+        },
+        departmentStats: {
+          students: [],
+          societyMembers: [],
+          courses: []
+        },
+        statusBreakdowns: {
+          cdInvestments: [],
+          loans: [],
+          feeRequests: [],
+          enrollments: []
+        },
+        recentActivities: {
+          students: [],
+          societyMembers: [],
+          cdInvestments: [],
+          loanRequests: [],
+          feePayments: []
+        },
+        summary: {
+          totalRevenue: 0,
+          totalInvestments: 0,
+          totalPendingApprovals: 0,
+          systemHealth: {
+            activeUsers: 0,
+            activeCourses: 0,
+            activeBatches: 0,
+            systemUptime: 0
+          }
+        }
+      };
+      setDashboardData(mockData);
+      setError('Dashboard API not available. Showing empty data.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadDashboardData(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatUptime = (seconds: number) => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${days}d ${hours}h ${minutes}m`;
+  };
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return <ErrorDisplay message={error} onRetry={handleRefresh} />;
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">No dashboard data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <div className="text-sm text-gray-500">
-          Last updated: {new Date().toLocaleString()}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Welcome back, {dashboardData.admin.name}
+          </p>
+        </div>
+        <div className="flex items-center space-x-3 mt-4 sm:mt-0">
+          <div className="text-sm text-gray-500">
+            Last updated: {new Date().toLocaleString()}
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">{stat.value}</p>
-                <div className="flex items-center mt-2">
-                  <span className={`text-sm font-medium ${
-                    stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-gray-500 ml-1">from last month</span>
-                </div>
+      {/* API Status Warning */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-800">
+                <strong>API Status:</strong> {error}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Statistics Cards */}
+      <StatisticsCards
+        overview={dashboardData.overview}
+        investments={dashboardData.investments}
+        loans={dashboardData.loans}
+        fees={dashboardData.fees}
+        academics={dashboardData.academics}
+      />
+
+      {/* Summary Cards */}
+      {dashboardData.summary && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
-              <div className={`w-16 h-16 rounded-xl ${stat.color} flex items-center justify-center`}>
-                <stat.icon className="w-8 h-8 text-white" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(dashboardData.summary.totalRevenue || 0)}
+                </p>
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Activity className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Pending Approvals</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dashboardData.summary.totalPendingApprovals || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Server className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">System Uptime</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatUptime(dashboardData.summary.systemHealth?.systemUptime || 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Charts and Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart Placeholder */}
+      {/* Charts Section */}
+      {dashboardData.charts && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {dashboardData.charts.userGrowth && (
+            <UserGrowthChart data={dashboardData.charts.userGrowth} />
+          )}
+          {dashboardData.charts.financial && (
+            <FinancialChart data={dashboardData.charts.financial} />
+          )}
+        </div>
+      )}
+
+      {/* Department and Status Charts */}
+      {dashboardData.departmentStats && dashboardData.statusBreakdowns && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DepartmentChart data={dashboardData.departmentStats} type="students" />
+          <StatusBreakdownChart data={dashboardData.statusBreakdowns} type="cdInvestments" />
+        </div>
+      )}
+
+      {/* Additional Charts */}
+      {dashboardData.statusBreakdowns && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StatusBreakdownChart data={dashboardData.statusBreakdowns} type="loans" />
+          <StatusBreakdownChart data={dashboardData.statusBreakdowns} type="feeRequests" />
+        </div>
+      )}
+
+      {/* Recent Activities */}
+      {dashboardData.recentActivities && (
+        <RecentActivities data={dashboardData.recentActivities} />
+      )}
+
+      {/* Monthly Growth Stats */}
+      {dashboardData.monthlyStats && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Revenue Trends</h2>
-          <div className="h-64 bg-gradient-to-br from-sky-50 to-sky-100 rounded-lg flex items-center justify-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Monthly Growth Comparison</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="text-center">
-              <TrendingUp className="w-12 h-12 text-sky-500 mx-auto mb-3" />
-              <p className="text-gray-600">Chart will be displayed here</p>
+              <p className="text-sm font-medium text-gray-500 mb-2">Students</p>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {dashboardData.monthlyStats.current?.students || 0}
+                </span>
+                <div className={`flex items-center ${
+                  (dashboardData.monthlyStats.growth?.students || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardData.monthlyStats.growth?.students || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {Math.abs(dashboardData.monthlyStats.growth?.students || 0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-500 mb-2">Society Members</p>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {dashboardData.monthlyStats.current?.societyMembers || 0}
+                </span>
+                <div className={`flex items-center ${
+                  (dashboardData.monthlyStats.growth?.societyMembers || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardData.monthlyStats.growth?.societyMembers || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {Math.abs(dashboardData.monthlyStats.growth?.societyMembers || 0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-500 mb-2">CD Investments</p>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {dashboardData.monthlyStats.current?.cdInvestments?.count || 0}
+                </span>
+                <div className={`flex items-center ${
+                  (dashboardData.monthlyStats.growth?.cdInvestments || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardData.monthlyStats.growth?.cdInvestments || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {Math.abs(dashboardData.monthlyStats.growth?.cdInvestments || 0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-500 mb-2">Loans</p>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {dashboardData.monthlyStats.current?.loans?.count || 0}
+                </span>
+                <div className={`flex items-center ${
+                  (dashboardData.monthlyStats.growth?.loans || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardData.monthlyStats.growth?.loans || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {Math.abs(dashboardData.monthlyStats.growth?.loans || 0)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-500 mb-2">Fees</p>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {dashboardData.monthlyStats.current?.fees?.count || 0}
+                </span>
+                <div className={`flex items-center ${
+                  (dashboardData.monthlyStats.growth?.fees || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardData.monthlyStats.growth?.fees || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {Math.abs(dashboardData.monthlyStats.growth?.fees || 0)}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Activities</h2>
-          <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-                <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{activity.action}</p>
-                  <p className="text-xs text-gray-500">{activity.user}</p>
-                </div>
-                <div className="text-xs text-gray-400">{activity.time}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-            <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm text-gray-600">Add Member</span>
-          </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-            <GraduationCap className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm text-gray-600">Add Student</span>
-          </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-            <CreditCard className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm text-gray-600">Process Payment</span>
-          </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-            <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <span className="text-sm text-gray-600">View Reports</span>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

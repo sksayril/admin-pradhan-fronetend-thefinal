@@ -1887,3 +1887,376 @@ export interface MarksheetPagination {
   hasNextPage: boolean;
   hasPrevPage: boolean;
 }
+
+// CD Investment Management Types
+export interface CDInvestment {
+  _id: string;
+  id: string;
+  cdId: string;
+  userId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    studentId?: string;
+    memberId?: string;
+  };
+  userType: 'Student' | 'SocietyMember';
+  userEmail: string;
+  userMemberId?: string;
+  userStudentId?: string;
+  userDisplayName: string;
+  investmentAmount: number;
+  tenureMonths: number;
+  interestRate: number;
+  maturityAmount: number;
+  totalInterest: number;
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'matured' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'partial' | 'overdue' | 'cancelled';
+  cdType: 'fixed' | 'flexible';
+  isRenewable: boolean;
+  autoRenewal: boolean;
+  purpose?: string;
+  notes?: string;
+  requestDate: string;
+  approvalDate?: string;
+  maturityDate?: string;
+  adminNotes?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CDInvestmentFilters {
+  page?: number;
+  limit?: number;
+  status?: 'pending' | 'approved' | 'rejected' | 'active' | 'matured' | 'cancelled';
+  userType?: 'Student' | 'SocietyMember';
+  search?: string;
+  requestDateFrom?: string;
+  requestDateTo?: string;
+  investmentAmountMin?: number;
+  investmentAmountMax?: number;
+}
+
+export interface CDInvestmentPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
+export interface CDInvestmentSummary {
+  Student: {
+    count: number;
+    totalAmount: number;
+  };
+  SocietyMember: {
+    count: number;
+    totalAmount: number;
+  };
+}
+
+export interface CDInvestmentStatistics {
+  overall: {
+    _id: string | null;
+    totalInvestments: number;
+    totalAmount: number;
+    totalMaturityAmount: number;
+    totalInterest: number;
+    avgInvestmentAmount: number;
+    avgInterestRate: number;
+  };
+  byStatus: {
+    [key: string]: {
+      count: number;
+      totalAmount: number;
+    };
+  };
+  byUserType: {
+    Student?: {
+      count: number;
+      totalAmount: number;
+    };
+    SocietyMember?: {
+      count: number;
+      totalAmount: number;
+    };
+  };
+}
+
+export interface PendingCDRequestsResponse {
+  success: boolean;
+  data: {
+    requests: CDInvestment[];
+    pagination: CDInvestmentPagination;
+    summary: CDInvestmentSummary;
+  };
+}
+
+export interface AllCDInvestmentsResponse {
+  success: boolean;
+  data: {
+    investments: CDInvestment[];
+    pagination: CDInvestmentPagination;
+    statistics: CDInvestmentStatistics;
+  };
+}
+
+export interface ApproveCDRequestRequest {
+  adminNotes?: string;
+}
+
+export interface RejectCDRequestRequest {
+  rejectionReason: string;
+  adminNotes?: string;
+}
+
+export interface CDInvestmentActionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    investment: {
+      cdId: string;
+      status: 'approved' | 'rejected';
+      approvalDate?: string;
+      maturityDate?: string;
+      adminNotes?: string;
+      rejectionReason?: string;
+    };
+  };
+}
+
+// Dashboard Types
+export interface DashboardAdmin {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  lastLogin: string;
+}
+
+export interface DashboardOverview {
+  totalUsers: number;
+  totalStudents: number;
+  totalSocietyMembers: number;
+  totalAdmins: number;
+  activeUsers: number;
+  newUsersThisMonth: number;
+}
+
+export interface CDInvestmentsData {
+  total: number;
+  totalAmount: number;
+  pending: number;
+  approved: number;
+}
+
+export interface RegularInvestmentsData {
+  total: number;
+  totalAmount: number;
+  pending: number;
+}
+
+export interface CombinedInvestmentsData {
+  totalInvestments: number;
+  totalAmount: number;
+}
+
+export interface DashboardInvestments {
+  cdInvestments: CDInvestmentsData;
+  regularInvestments: RegularInvestmentsData;
+  combined: CombinedInvestmentsData;
+}
+
+export interface DashboardLoans {
+  totalRequests: number;
+  totalAmount: number;
+  pending: number;
+  approved: number;
+  disbursed: number;
+}
+
+export interface DashboardFees {
+  totalRequests: number;
+  totalAmount: number;
+  pending: number;
+  totalPayments: number;
+  totalCollected: number;
+}
+
+export interface DashboardAcademics {
+  totalCourses: number;
+  totalBatches: number;
+  totalEnrollments: number;
+  activeEnrollments: number;
+  totalAttendanceRecords: number;
+  attendanceThisMonth: number;
+}
+
+export interface ChartDataPoint {
+  month: string;
+  count: number;
+  amount?: number;
+}
+
+export interface UserGrowthChart {
+  students: ChartDataPoint[];
+  societyMembers: ChartDataPoint[];
+}
+
+export interface FinancialChart {
+  cdInvestments: ChartDataPoint[];
+  loans: ChartDataPoint[];
+  fees: ChartDataPoint[];
+}
+
+export interface DashboardCharts {
+  userGrowth: UserGrowthChart;
+  financial: FinancialChart;
+}
+
+export interface MonthlyStats {
+  current: {
+    students: number;
+    societyMembers: number;
+    cdInvestments: { count: number; amount: number };
+    loans: { count: number; amount: number };
+    fees: { count: number; amount: number };
+  };
+  last: {
+    students: number;
+    societyMembers: number;
+    cdInvestments: { count: number; amount: number };
+    loans: { count: number; amount: number };
+    fees: { count: number; amount: number };
+  };
+  growth: {
+    students: number;
+    societyMembers: number;
+    cdInvestments: number;
+    loans: number;
+    fees: number;
+  };
+}
+
+export interface DepartmentStat {
+  _id: string;
+  count: number;
+}
+
+export interface DepartmentStats {
+  students: DepartmentStat[];
+  societyMembers: DepartmentStat[];
+  courses: DepartmentStat[];
+}
+
+export interface StatusBreakdown {
+  _id: string;
+  count: number;
+}
+
+export interface StatusBreakdowns {
+  cdInvestments: StatusBreakdown[];
+  loans: StatusBreakdown[];
+  feeRequests: StatusBreakdown[];
+  enrollments: StatusBreakdown[];
+}
+
+export interface RecentActivityUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  studentId?: string;
+  memberId?: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface RecentCDInvestment {
+  _id: string;
+  cdId: string;
+  investmentAmount: number;
+  status: string;
+  requestDate: string;
+  userEmail?: string;
+  userMemberId?: string;
+  userDisplayName?: string;
+  id?: string;
+  userId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    studentId?: string;
+    memberId?: string;
+  };
+}
+
+export interface RecentLoanRequest {
+  _id: string;
+  loanAmount: number;
+  status: string;
+  requestDate?: string;
+  userId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    studentId?: string;
+    memberId?: string;
+  };
+}
+
+export interface RecentFeePayment {
+  _id: string;
+  amount: number;
+  paymentDate: string;
+  userId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    studentId?: string;
+    memberId?: string;
+  };
+}
+
+export interface RecentActivities {
+  students: RecentActivityUser[];
+  societyMembers: RecentActivityUser[];
+  cdInvestments: RecentCDInvestment[];
+  loanRequests: RecentLoanRequest[];
+  feePayments: RecentFeePayment[];
+}
+
+export interface SystemHealth {
+  activeUsers: number;
+  activeCourses: number;
+  activeBatches: number;
+  systemUptime: number;
+}
+
+export interface DashboardSummary {
+  totalRevenue: number;
+  totalInvestments: number;
+  totalPendingApprovals: number;
+  systemHealth: SystemHealth;
+}
+
+export interface DashboardData {
+  admin: DashboardAdmin;
+  overview: DashboardOverview;
+  investments: DashboardInvestments;
+  loans: DashboardLoans;
+  fees: DashboardFees;
+  academics: DashboardAcademics;
+  charts: DashboardCharts;
+  monthlyStats: MonthlyStats;
+  departmentStats: DepartmentStats;
+  statusBreakdowns: StatusBreakdowns;
+  recentActivities: RecentActivities;
+  summary: DashboardSummary;
+}
+
+export interface DashboardResponse {
+  success: boolean;
+  data: DashboardData;
+}

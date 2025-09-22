@@ -32,6 +32,7 @@ import RejectedInvestmentApplications from './pages/society/RejectedInvestmentAp
 import PaymentManagement from './pages/society/PaymentManagement';
 import LoanManagement from './pages/society/LoanManagement';
 import ThumbnailManagement from './pages/society/ThumbnailManagement';
+import CDInvestmentManagement from './pages/society/CDInvestmentManagement';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // 404 Not Found Component
@@ -100,6 +101,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/society/payment-management" element={<PaymentManagement />} />
             <Route path="/society/loan-management" element={<LoanManagement />} />
             <Route path="/society/thumbnail-management" element={<ThumbnailManagement />} />
+            <Route path="/society/cd-investment-management" element={<CDInvestmentManagement />} />
             <Route path="/kyc" element={<KYCDashboard />} />
             <Route path="/kyc/pending" element={<PendingKYC />} />
             <Route path="/kyc/students" element={<StudentKYCPage />} />
@@ -127,29 +129,29 @@ function App() {
       <Router>
         <AuthProvider>
           <AppRoutes />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                style: {
-                  background: '#10B981',
-                },
-              },
-              error: {
-                duration: 5000,
-                style: {
-                  background: '#EF4444',
-                },
-              },
-            }}
-          />
         </AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              duration: 3000,
+              style: {
+                background: '#10B981',
+              },
+            },
+            error: {
+              duration: 5000,
+              style: {
+                background: '#EF4444',
+              },
+            },
+          }}
+        />
       </Router>
     </ErrorBoundary>
   );
