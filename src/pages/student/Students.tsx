@@ -285,10 +285,12 @@ const Students: React.FC = React.memo(() => {
               aria-label="Filter by department"
             >
               <option value="all">All Departments</option>
-              <option value="computer-science">Computer Science</option>
-              <option value="engineering">Engineering</option>
-              <option value="business">Business</option>
-              <option value="mathematics">Mathematics</option>
+              <option value="Arts">Arts</option>
+              <option value="Business">Business</option>
+              <option value="Science">Science</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Medicine">Medicine</option>
             </select>
             <select 
               value={selectedKycStatus}
@@ -300,6 +302,7 @@ const Students: React.FC = React.memo(() => {
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
+              <option value="not_submitted">Not Submitted</option>
             </select>
           </div>
         </div>
@@ -347,10 +350,35 @@ const Students: React.FC = React.memo(() => {
                   <tr key={student.id || student._id || student.studentId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">
-                            {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                          </span>
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                          {student.profilePicture ? (
+                            <img
+                              src={student.profilePicture}
+                              alt={`${student.firstName} ${student.lastName}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to initials if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `
+                                    <div class="w-full h-full bg-sky-500 flex items-center justify-center">
+                                      <span class="text-white text-sm font-semibold">
+                                        ${student.firstName.charAt(0)}${student.lastName.charAt(0)}
+                                      </span>
+                                    </div>
+                                  `;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-sky-500 flex items-center justify-center">
+                              <span className="text-white text-sm font-semibold">
+                                {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -362,24 +390,25 @@ const Students: React.FC = React.memo(() => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{student.email}</div>
-                      <div className="text-sm text-gray-500">{student.phone}</div>
+                      <div className="text-sm text-gray-500">{student.phoneNumber || student.phone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {student.department}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {student.courseName}
+                      {student.courseName || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(student.enrollmentDate).toLocaleDateString()}
+                      {student.enrollmentDate ? new Date(student.enrollmentDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         student.kycStatus === 'approved' ? 'bg-green-100 text-green-800' :
                         student.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        student.kycStatus === 'not_submitted' ? 'bg-gray-100 text-gray-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {student.kycStatus}
+                        {student.kycStatus === 'not_submitted' ? 'Not Submitted' : student.kycStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
