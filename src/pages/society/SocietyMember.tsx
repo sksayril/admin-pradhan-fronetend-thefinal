@@ -248,6 +248,7 @@ const SocietyMember: React.FC = () => {
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Societies</option>
+              <option value="shjajhsajas">shjajhsajas</option>
               <option value="tech-club">Tech Club</option>
               <option value="sports-club">Sports Club</option>
               <option value="cultural-society">Cultural Society</option>
@@ -261,6 +262,7 @@ const SocietyMember: React.FC = () => {
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
+              <option value="not_submitted">Not Submitted</option>
             </select>
           </div>
         </div>
@@ -311,10 +313,35 @@ const SocietyMember: React.FC = () => {
                   <tr key={member.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">
-                            {member.firstName.charAt(0)}{member.lastName.charAt(0)}
-                          </span>
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                          {member.profilePicture ? (
+                            <img
+                              src={member.profilePicture}
+                              alt={`${member.firstName} ${member.lastName}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to initials if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `
+                                    <div class="w-full h-full bg-green-500 flex items-center justify-center">
+                                      <span class="text-white text-sm font-semibold">
+                                        ${member.firstName.charAt(0)}${member.lastName.charAt(0)}
+                                      </span>
+                                    </div>
+                                  `;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-green-500 flex items-center justify-center">
+                              <span className="text-white text-sm font-semibold">
+                                {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -335,15 +362,17 @@ const SocietyMember: React.FC = () => {
                       {member.position}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {member.membershipDate ? new Date(member.membershipDate).toLocaleDateString() : 'N/A'}
+                      {member.joiningDate ? new Date(member.joiningDate).toLocaleDateString() : 
+                       member.membershipDate ? new Date(member.membershipDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         member.kycStatus === 'approved' ? 'bg-green-100 text-green-800' :
                         member.kycStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        member.kycStatus === 'not_submitted' ? 'bg-gray-100 text-gray-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {member.kycStatus}
+                        {member.kycStatus === 'not_submitted' ? 'Not Submitted' : member.kycStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

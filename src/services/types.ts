@@ -237,6 +237,7 @@ export interface EnhancedSocietyMember {
   dateOfBirth: string;
   address: string | AddressInfo;
   membershipDate: string;
+  joiningDate?: string;
   status: 'active' | 'inactive' | 'suspended';
   societyName: string;
   position: string;
