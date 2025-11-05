@@ -1681,10 +1681,30 @@ export interface InvestmentApplication {
   applicationDate: string;
   approvalDate?: string;
   rejectionDate?: string;
-  approvedBy?: string;
-  rejectedBy?: string;
+  approvedBy?: string | {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName?: string;
+  };
+  rejectedBy?: string | {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName?: string;
+  };
   rejectionReason?: string;
-  notes?: string[];
+  notes?: (string | {
+    _id: string;
+    note: string;
+    addedBy: string | {
+      _id: string;
+      email: string;
+      firstName: string;
+      lastName?: string;
+    };
+    date: string;
+  })[];
   documents?: Array<{
     id: string;
     type: string;

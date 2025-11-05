@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Banknote, DollarSign, AlertTriangle, TrendingUp, Users, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { loanService, LoanStatistics, LoanFilters } from '../../services';
-import { TableSkeleton, CardSkeleton } from '../../components/LoadingSkeleton';
+import { Banknote, DollarSign, AlertTriangle, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { loanService, LoanStatistics } from '../../services';
+import { CardSkeleton } from '../../components/LoadingSkeleton';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import LoanRequestsModal from '../../components/LoanRequestsModal';
 import LoanStatisticsModal from '../../components/LoanStatisticsModal';
@@ -47,10 +47,10 @@ const LoanManagement: React.FC = React.memo(() => {
     if (!statistics) return null;
     
     return {
-      totalLoanAmount: statistics.totalLoanAmount,
-      pendingAmount: statistics.statusBreakdown.find(s => s.status === 'pending')?.totalAmount || 0,
-      approvedAmount: statistics.statusBreakdown.find(s => s.status === 'approved')?.totalAmount || 0,
-      disbursedAmount: statistics.statusBreakdown.find(s => s.status === 'disbursed')?.totalAmount || 0,
+      totalLoanAmount: statistics.totalLoanAmount || 0,
+      pendingAmount: statistics.statusBreakdown?.find(s => s.status === 'pending')?.totalAmount || 0,
+      approvedAmount: statistics.statusBreakdown?.find(s => s.status === 'approved')?.totalAmount || 0,
+      disbursedAmount: statistics.statusBreakdown?.find(s => s.status === 'disbursed')?.totalAmount || 0,
     };
   }, [statistics]);
 
@@ -131,7 +131,7 @@ const LoanManagement: React.FC = React.memo(() => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Loan Amount</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {loanService.formatCurrency(statistics.totalLoanAmount)}
+                  {loanService.formatCurrency(statistics.totalLoanAmount || 0)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -199,7 +199,7 @@ const LoanManagement: React.FC = React.memo(() => {
               <div>
                 <h3 className="font-medium text-gray-900">Loan Requests</h3>
                 <p className="text-sm text-gray-500">
-                  {statistics?.additionalStats.totalPendingRequests || 0} requests pending review
+                  {statistics?.additionalStats?.totalPendingRequests || 0} requests pending review
                 </p>
               </div>
             </div>
@@ -231,7 +231,7 @@ const LoanManagement: React.FC = React.memo(() => {
               <div>
                 <h3 className="font-medium text-gray-900">Approved Loans</h3>
                 <p className="text-sm text-gray-500">
-                  {statistics?.additionalStats.totalApprovedRequests || 0} loans approved
+                  {statistics?.additionalStats?.totalApprovedRequests || 0} loans approved
                 </p>
               </div>
             </div>
@@ -245,17 +245,21 @@ const LoanManagement: React.FC = React.memo(() => {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Loan Status Overview</h3>
             <div className="space-y-3">
-              {statistics.statusBreakdown.map((status) => (
-                <div key={status.status} className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${loanService.getLoanStatusColor(status.status)}`}>
-                      {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
-                    </span>
-                    <span className="text-sm text-gray-600">({status.count})</span>
+              {statistics.statusBreakdown && statistics.statusBreakdown.length > 0 ? (
+                statistics.statusBreakdown.map((status) => (
+                  <div key={status.status} className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${loanService.getLoanStatusColor(status.status)}`}>
+                        {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
+                      </span>
+                      <span className="text-sm text-gray-600">({status.count})</span>
+                    </div>
+                    <span className="font-medium">{loanService.formatCurrency(status.totalAmount)}</span>
                   </div>
-                  <span className="font-medium">{loanService.formatCurrency(status.totalAmount)}</span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No loan status data available</p>
+              )}
             </div>
           </div>
 
@@ -264,19 +268,19 @@ const LoanManagement: React.FC = React.memo(() => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Total Requests</span>
-                <span className="font-medium">{statistics.totalRequests}</span>
+                <span className="font-medium">{statistics.totalRequests || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Pending Requests</span>
-                <span className="font-medium text-yellow-600">{statistics.additionalStats.totalPendingRequests}</span>
+                <span className="font-medium text-yellow-600">{statistics.additionalStats?.totalPendingRequests || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Approved Requests</span>
-                <span className="font-medium text-green-600">{statistics.additionalStats.totalApprovedRequests}</span>
+                <span className="font-medium text-green-600">{statistics.additionalStats?.totalApprovedRequests || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Disbursed Loans</span>
-                <span className="font-medium text-blue-600">{statistics.additionalStats.totalDisbursedLoans}</span>
+                <span className="font-medium text-blue-600">{statistics.additionalStats?.totalDisbursedLoans || 0}</span>
               </div>
             </div>
           </div>

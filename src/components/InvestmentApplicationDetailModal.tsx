@@ -301,7 +301,13 @@ const InvestmentApplicationDetailModal: React.FC<InvestmentApplicationDetailModa
                     <p className="text-sm font-medium text-gray-900">Application Approved</p>
                     <p className="text-xs text-gray-500">{formatDateTime(application.approvalDate)}</p>
                     {application.approvedBy && (
-                      <p className="text-xs text-gray-400">Approved by: {application.approvedBy}</p>
+                      <p className="text-xs text-gray-400">
+                        Approved by: {typeof application.approvedBy === 'string' 
+                          ? application.approvedBy 
+                          : application.approvedBy.firstName 
+                            ? `${application.approvedBy.firstName} ${application.approvedBy.lastName || ''} (${application.approvedBy.email || ''})`
+                            : application.approvedBy.email || 'Unknown'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -313,7 +319,13 @@ const InvestmentApplicationDetailModal: React.FC<InvestmentApplicationDetailModa
                     <p className="text-sm font-medium text-gray-900">Application Rejected</p>
                     <p className="text-xs text-gray-500">{formatDateTime(application.rejectionDate)}</p>
                     {application.rejectedBy && (
-                      <p className="text-xs text-gray-400">Rejected by: {application.rejectedBy}</p>
+                      <p className="text-xs text-gray-400">
+                        Rejected by: {typeof application.rejectedBy === 'string' 
+                          ? application.rejectedBy 
+                          : application.rejectedBy.firstName 
+                            ? `${application.rejectedBy.firstName} ${application.rejectedBy.lastName || ''} (${application.rejectedBy.email || ''})`
+                            : application.rejectedBy.email || 'Unknown'}
+                      </p>
                     )}
                     {application.rejectionReason && (
                       <p className="text-xs text-red-600">Reason: {application.rejectionReason}</p>
@@ -332,11 +344,30 @@ const InvestmentApplicationDetailModal: React.FC<InvestmentApplicationDetailModa
                 <h3 className="text-lg font-semibold text-gray-800">Notes</h3>
               </div>
               <div className="space-y-2">
-                {application.notes.map((note, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{note}</p>
-                  </div>
-                ))}
+                {application.notes.map((note, index) => {
+                  // Handle both string and object formats
+                  const noteText = typeof note === 'string' ? note : note.note || '';
+                  const addedBy = typeof note === 'object' && note.addedBy 
+                    ? (typeof note.addedBy === 'string' 
+                      ? note.addedBy 
+                      : `${note.addedBy.firstName || ''} ${note.addedBy.lastName || ''}`.trim() || note.addedBy.email || 'Unknown')
+                    : null;
+                  const noteDate = typeof note === 'object' && note.date 
+                    ? formatDateTime(note.date)
+                    : null;
+                  
+                  return (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700">{noteText}</p>
+                      {(addedBy || noteDate) && (
+                        <div className="mt-2 flex items-center space-x-3 text-xs text-gray-500">
+                          {addedBy && <span>Added by: {addedBy}</span>}
+                          {noteDate && <span>• {noteDate}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
